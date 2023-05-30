@@ -1,0 +1,19 @@
+암호에서 난수는 매우 많이 쓰이고 있다. 예측 불가능하며 한 번만 사용하고 바꿀 목적으로 쓰는 난수를 nonce(발음도 비슷함)라고 한다. 흔히 아는 공개키 생성에도 난수가 쓰인다. 이 난수가 단순히 일정 범위에서 아무 수나 뽑아내는 수준을 넘어서 통계적으로 완전히 독립성을 가지는 난수여야만 한다. 사실 우리가 파이썬 등에서 사용하는 난수 생성 메소드는 실제로 진짜 난수를 반환하는 것이 아니라 어떠한 규칙에 의해 뽑아내는 수이다.
+
+01) PRNG (Pseudorandom Number Generator)
+Psudorandom number는 컴퓨터 알고리즘에 의해 생성되는 난수이다. 앞서 언급한 난수 메소드가 여기에 해당한다. 사람이 인지하기 힘든 어떠한 주기 안에서 특정 수를 뽑아내기에 난수처럼 보이는 것이기 때문에 완전한 난수라고 볼 수는 없다. 예를 들어 어떤 언어에서는 특정 날짜로부터 현재 시간까지의 차이를 값으로 변환하여 난수로 반환하기도 한다. 당연히 주기가 길수록 좋은 PRNG이다. 생성한 난수는 randomness라 불리는 검증을 통과해야 쓸 수 있다. PRNG의 seed는 TRNG로부터 얻어낸 자연난수를 Seed로 쓴다. 예시로 든 시간 기준 난수도 마찬가지다.
+
+02)TRNG (True Random Number Generator)
+자연계에 존재하는 난수. 영문으로는 drawn from the physical environment of the computer라고 표현되어있는데, 의외로 직관적인 표현이다. 컴퓨터가 사용하는 전기신호의 변화그래프를 나타내어 디지털 신호로 변환한다거나, 백색소음같은 것들로부터 추출한 난수가 여기에 속한다. 즉, Analog source로부터 얻어낸 Binary ouput을 True Random Number로 본다.
+
+03) Linear Congruential Generator
+매우 약한 Random Number를 생성한다.
+
+04) Blum Blum Shub Generator
+공개키 알고리즘의 기반이 되었으며, 우리가 현재 쓰고 있는 대부분의 서명 알고리즘의 뿌리이다. 훨씬 안전하지만 다소 무겁다.
+입력이 들어오면 입력을 제곱하고, n에 대하여 mod 연산을 한다. 그 결과의 맨 마지막 비트를 쓴다. 최종 출력 역시 비트 단위로 출력된다. n은 두 소수 p와 q의 곱이다. 이 방법의 보안성은 n을 생성하는 어려움에 있다. n은 매우 크며, 그 정도로 큰 수를 생성하는 소수 짝중에서 정답을 찾아내기가 매우 어렵다. 현재 우리가 사용하는 n만 해도 2048비트의 크기를 가진다. 널리 알려진 RSA도 이러한 소인수분해의 어려움에 기반한 암호화 알고리즘이다. 이렇게 보안성이 발전했지만 동작속도가 느린 이유도 간단하다. 2^2048 이라는 큰 수를 한 번 다룰 때 마다 고작 1비트를 가져오니말이다.
+
+05) CTR_DRBG (Counter mode deterministic random bit generator)
+
+CTR_DRBG는 Intel Processor에서 사용하는 난수 생성 방식이다. 먼저 위쪽의 (a) Initialize and update function 그림을 보면 맨 처음 시작값으로 V(seed)와 Key를 사용자로부터 입력받는다. 입력된 V가 Key값과 Encrypt 알고리즘을 거친 후 그 결과를 Entropy source와 연산하여 다음 V2와 Key2를 생성하며, seed의 길이만큼 이 과정을 반복한다. 여기까지가 (a) 과정으로, seed를 만들어내는 과정이다.
+seed length = key length + output block length 이다.

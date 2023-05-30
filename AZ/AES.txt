@@ -1,0 +1,27 @@
+Rijmen-Daemen에 의해 고안된 Rijndael 알고리즘을 바탕으로 탄생하였으며, 128/192/256 bit Key값과 128bit의 데이터를 가진다. 키의 길이가 길어진 만큼 라운드는 많아진다. 따라서 ASE-128, AES-192,AES-256에서의 라운스 수가 달라진다. 특이하게도 feistel 구조가 아닌 SPNetwork 구조이다. 연산은 모두 Galois Feild에서 행해지며, 블록 단위로 처리하는 블록 암호 알고리즘에 해당한다.
+DES가 Feistel 구조를 사용했다면 AES는 SPN을 사용한다. SPN은 Substitution-Permutation Network 인데, 용어 그대로 치환과 순열을 이용하여 전체 bit을 암호하 하는 방법이다. AES의 라운드 횟수는 Key의 길이에 따라 다르다.
+AES 알고리즘은 내부적으로 State라고 불리는 1Byte의 2차원 배열을 사용하고 있다. 한 칸당 8비트씩 16개의 원소를 갖는 행렬이므로 도합 128bit이 된다. 각 요소에는 평문으로부터 얻어낸 Hexadecimal 값이 들어간다.
+AES 알고리즘은 네 단계의 암호화 과정을 거친다.
+1) Byte Substitution(S-Box)
+2) Shift Rows(permutation)
+3) Mix Columns(substitution)
+4) Add Round Key(XOR)
+
+먼저 평문이 들어가서 첫 라운드를 돌기 전에 Add round key를 만난다. 내부적으로는 평문의 state 행력과 Key로부터 만들어낸 행렬이 최초 Add round key 연산을 만나는 것인데, Add round key는 XOR 연산으로 보면 된다. mod 2에서의 Galois Feild 덧셈이므로 사실상 XOR 연산과 동일하다. 이후에는 AES-128 기준 10회의 Round를 거쳐 Ciphertext를 생성한다. 맨 마지막 라운드에는 Mix columns 연산이 빠져있다.
+이제 라운드의 각 연산을 자세히 살펴보자.​
+
+1)Byte Substitution
+state는 각 요소당 1byte씩 4x4행렬이므로 16byte라고 했다. Byte substitution은 각 1byte를 4bit/4bit으로 나누어 AES S-Box에서 좌측 4bit은 x, 우측 4bit은 y로 보고 읽는다.
+
+2)Shift Row(Permutation)
+state의 4개의 행은 왼쪽으로 shift 되며, 맨 왼쪽 값은 맨 오른쪽으로 간다.
+
+3)Mix Columns
+4x4 상수 행렬이 주어지고 이 상수행렬과 행렬의 곱을 한다. 이 때 곱과 합은 GaloisField에서 이루어지며, GF(2^8)에서 행해진다.
+
+4)Add Round Key(XOR)
+
+사용자로부터 제공받은 128bit의 키는 8비트씩 나누어 4x4 행렬 state를 만들어낸다. 이 Key state를 열 단위로 4개씩 묶어 w1, w2..로 부른다. 위 그림에서 w[0,3]은 w0부터 w3을 의미한다.(w0,w3만 의미하는게 아님) 이렇게 키가 준비되면 평문이 들어오고, 이 평문도 4x4 state로 만든다. 그 이후의 w4,w5...w43은 expand key 과정을 거쳐서 생성된다.
+w0 w1 w2 w3으로부터 w4 w5 w6 w7을 얻기 위해서는 w4가 필요하고, w4를 얻으려면 가장 먼저 g(w3)을 구해야 한다.
+g() = S-Box(LeftRotationWord(w3)) XOR RoundConstant 이다.
+g(w3)을 구한 후 w0와 XOR하면 w4를 얻을 수 있다.
